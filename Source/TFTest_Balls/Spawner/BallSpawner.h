@@ -18,6 +18,8 @@ public:
 	// Sets default values for this actor's properties
 	ABallSpawner();
 
+	void Start();
+
 	UPROPERTY(EditAnywhere, Category = Setup)
 	int32 BallsNum = 30;
 

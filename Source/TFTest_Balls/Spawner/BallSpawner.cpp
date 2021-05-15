@@ -12,11 +12,8 @@ ABallSpawner::ABallSpawner()
 
 }
 
-// Called when the game starts or when spawned
-void ABallSpawner::BeginPlay()
+void ABallSpawner::Start()
 {
-	Super::BeginPlay();
-	
 	FActorSpawnParameters SpawnParams;
 	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
@@ -31,6 +28,12 @@ void ABallSpawner::BeginPlay()
 
 		BallProjectiles.Add(Ball);
 	}
+}
+
+// Called when the game starts or when spawned
+void ABallSpawner::BeginPlay()
+{
+	Super::BeginPlay();
 }
 
 // Called every frame

@@ -41,5 +41,4 @@ private:
 	void ReadData();
 
 	PythonSocketComunicator SocketComunicator;
-
 };
