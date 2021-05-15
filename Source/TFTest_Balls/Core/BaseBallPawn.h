@@ -6,6 +6,8 @@
 #include "GameFramework/Pawn.h"
 #include "BaseBallPawn.generated.h"
 
+class UCapsuleComponent;
+
 
 
 UCLASS()
@@ -17,15 +19,18 @@ public:
 	// Sets default values for this pawn's properties
 	ABaseBallPawn();
 
-	UPROPERTY(EditAnywhere, Category = Setup)
-	float Speed = 100.f;
-
 	void SetMovementUp(const float AxisValue);
 	void SetMovementRight(const float AxisValue);
+
+	UPROPERTY(EditAnywhere, Category = Setup)
+	float Speed = 1000.f;
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	UPROPERTY(VisibleAnywhere, Category = Setup)
+	UCapsuleComponent* Capsule;
 
 public:	
 	// Called every frame
