@@ -29,6 +29,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = Setup)
 	float MaxBallSpeed = 600.f;
 
+	const TArray<ABallProjectile*>& GetBallProjectiles() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

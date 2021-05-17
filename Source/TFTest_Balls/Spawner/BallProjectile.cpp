@@ -43,6 +43,11 @@ bool ABallProjectile::IsActive() const
 	return bIsActive;
 }
 
+FVector ABallProjectile::GetProjectileSpeed() const
+{
+	return ProjectileSpeed;
+}
+
 // Called when the game starts or when spawned
 void ABallProjectile::BeginPlay()
 {
@@ -63,7 +68,6 @@ void ABallProjectile::OnOverlap(UPrimitiveComponent* OverlappedComponent, AActor
 {
 	if (!OtherActor->IsA<ABallProjectile>())
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 1.f, FColor::Magenta, FString("Collided"));
 		OnCollision.Broadcast(this, OtherActor);
 	}
 }

@@ -30,6 +30,11 @@ void ABallSpawner::Start()
 	}
 }
 
+const TArray<ABallProjectile*>& ABallSpawner::GetBallProjectiles() const
+{
+	return BallProjectiles;
+}
+
 // Called when the game starts or when spawned
 void ABallSpawner::BeginPlay()
 {

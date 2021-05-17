@@ -24,6 +24,8 @@ public:
 
 	bool IsActive() const;
 
+	FVector GetProjectileSpeed() const;
+
 	FOnProjectileCollisionDelegate OnCollision;
 
 protected:

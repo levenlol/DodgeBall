@@ -4,11 +4,15 @@
 
 #include "cstring"
 #include <ws2tcpip.h>
+#include <string>
 
 #define LOCAL_IP "127.0.0.1"
 #define DEFAULT_PORT "8080"
 
 #define SOCKET_BUFFER_SIZE 512
+
+#pragma optimize("", off)
+
 
 PythonSocketComunicator::PythonSocketComunicator()
 	: RecvBuffer(SOCKET_BUFFER_SIZE, 0)
@@ -112,25 +116,71 @@ bool PythonSocketComunicator::SendData(const char* Data, const int32 Size)
 
 		if (DataSent == SOCKET_ERROR)
 		{
-			UE_LOG(LogTemp, Error, TEXT("send failed : %d \n"), WSAGetLastError());
+			UE_LOG(LogTemp, Error, TEXT("send failed : %d"), WSAGetLastError());
 			closesocket(ConnectionSocket);
 			WSACleanup();
 			return false;
 		}
 
-		UE_LOG(LogTemp, Log, TEXT("Bytes sent: %d\n"), DataSent);
+		UE_LOG(LogTemp, Log, TEXT("Bytes sent: %d"), DataSent);
 		return true;
 	}
 
 	return false;
 }
 
+bool PythonSocketComunicator::SendQuit()
+{
+	UE_LOG(LogTemp, Warning, TEXT("PythonSocketComunicator::SendQuit(): Quitting Connection."));
+	return SendData(-1);
+}
+
+void PythonSocketComunicator::SetMode(PythonSocketComunicator::Mode NewMode)
+{
+	if (IsConnected())
+	{
+		if (NewMode == PythonSocketComunicator::Mode::Inference)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Requesting Mode Inference"));
+			char* NewTypeStr = "inference";
+			SendData(NewTypeStr, strlen(NewTypeStr));
+
+			// wait for acknowledge
+			const int32 DataReadNum = ReadData();
+			std::string Response(RecvBuffer.data(), DataReadNum);
+
+			check(Response == "ok");
+		}
+		else if (NewMode == PythonSocketComunicator::Mode::Backward)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Requesting Mode Backward"));
+
+			char* NewTypeStr = "Backward";
+			SendData(NewTypeStr, strlen(NewTypeStr));
+
+			// wait for acknowledge
+			const int32 DataReadNum = ReadData();
+			std::string Response(RecvBuffer.data(), DataReadNum);
+
+			check(Response == "ok");
+		}
+	}
+}
+
 int PythonSocketComunicator::ReadData()
 {
-	const int ReceivedByte = recv(ConnectionSocket, RecvBuffer.data(), SOCKET_BUFFER_SIZE, 0);
+	char* buffptr;
+	return ReadData(SOCKET_BUFFER_SIZE, buffptr);
+}
+
+int PythonSocketComunicator::ReadData(int32 BuffSize, char*& OutBuffer)
+{
+	const int ReceivedByte = recv(ConnectionSocket, RecvBuffer.data(), BuffSize, 0);
+
 	if (ReceivedByte > 0)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Bytes Received: %d - Bytes: %s"), *FString(ReceivedByte, RecvBuffer.data()));
+		UE_LOG(LogTemp, Log, TEXT("Bytes Received: %d"), ReceivedByte);
+		OutBuffer = RecvBuffer.data();
 		return ReceivedByte;
 	}
 	else if (ReceivedByte == 0)

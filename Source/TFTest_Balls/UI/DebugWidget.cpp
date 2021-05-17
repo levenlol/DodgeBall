@@ -3,6 +3,7 @@
 
 #include "DebugWidget.h"
 #include "Components/Button.h"
+#include <string>
 
 void UDebugWidget::NativeConstruct()
 {
@@ -11,6 +12,8 @@ void UDebugWidget::NativeConstruct()
 	ConnectButton->OnClicked.AddDynamic(this, &UDebugWidget::OnConnectClicked);
 	SendDataButton->OnClicked.AddDynamic(this, &UDebugWidget::SendData);
 	ReadDataButton->OnClicked.AddDynamic(this, &UDebugWidget::ReadData);
+
+	OnConnectClicked();
 }
 
 void UDebugWidget::NativeDestruct()
@@ -37,12 +40,41 @@ void UDebugWidget::OnConnectClicked()
 
 void UDebugWidget::SendData()
 {
-	const char* HelloData = "SAY HELLO MY FRIEND\n";
+	// set mode to inference
+	UE_LOG(LogTemp, Log, TEXT("Set mode to inference"));
+
+	SocketComunicator.SetMode(PythonSocketComunicator::Inference);
+
+	UE_LOG(LogTemp, Log, TEXT("Sending observations."));
+
+	TArray<float> A({ 4.0f, 23.f, 12.f, 11.f });
 	
-	const bool bSendResult = SocketComunicator.SendData(HelloData, strlen(HelloData));
+	bool bSendResult = SocketComunicator.SendData(A.Num());
+	for (float a : A)
+	{
+		bSendResult &= SocketComunicator.SendData(a);
+	}
+
+	UE_LOG(LogTemp, Log, TEXT("Reading data"));
+	ReadData();
+
+	bSendResult &= SocketComunicator.SendQuit();
 }
 
 void UDebugWidget::ReadData()
 {
-	SocketComunicator.ReadData();
+	// first read num of actions (2)
+	char* BufferPtr = nullptr;
+	const int32 ReadDataNum = SocketComunicator.ReadData(4, BufferPtr);
+
+	int32 ActionsNum = -1;
+	memcpy(&ActionsNum, BufferPtr, sizeof(int32));
+
+	for (int32 i = 0; i < ActionsNum; i++)
+	{
+		float ActionValue;
+		const int32 FirstActionNum = SocketComunicator.ReadData(ActionValue);
+
+		UE_LOG(LogTemp, Log, TEXT("Action Number %d is: %f"), i, ActionValue);
+	}
 }
