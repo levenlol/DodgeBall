@@ -31,6 +31,11 @@ void UDebugWidget::OnConnectClicked()
 	if (bResult)
 	{
 		UE_LOG(LogTemp, Log, TEXT("Socket Connected."));
+
+		// build NN
+		SocketComunicator.SendData(7200);		// input space
+		SocketComunicator.SendData(5);			// action space
+		SocketComunicator.SendData(0.001f);		// learning rate
 	}
 	else
 	{
@@ -47,9 +52,10 @@ void UDebugWidget::SendData()
 
 	UE_LOG(LogTemp, Log, TEXT("Sending observations."));
 
-	TArray<float> A({ 4.0f, 23.f, 12.f, 11.f });
+	TArray<float> A;
+	A.Init(0.f, 7200);
 	
-	bool bSendResult = SocketComunicator.SendData(A.Num());
+	bool bSendResult = true;
 	for (float a : A)
 	{
 		bSendResult &= SocketComunicator.SendData(a);
@@ -58,7 +64,7 @@ void UDebugWidget::SendData()
 	UE_LOG(LogTemp, Log, TEXT("Reading data"));
 	ReadData();
 
-	bSendResult &= SocketComunicator.SendQuit();
+	//bSendResult &= SocketComunicator.SendQuit();
 }
 
 void UDebugWidget::ReadData()
@@ -72,9 +78,9 @@ void UDebugWidget::ReadData()
 
 	for (int32 i = 0; i < ActionsNum; i++)
 	{
-		float ActionValue;
-		const int32 FirstActionNum = SocketComunicator.ReadData(ActionValue);
+		int32 ActionValueIdx;
+		const int32 FirstActionNum = SocketComunicator.ReadData(ActionValueIdx);
 
-		UE_LOG(LogTemp, Log, TEXT("Action Number %d is: %f"), i, ActionValue);
+		UE_LOG(LogTemp, Log, TEXT("Action Number %d is: %d"), i, ActionValueIdx);
 	}
 }
