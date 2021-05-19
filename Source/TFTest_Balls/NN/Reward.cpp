@@ -7,9 +7,9 @@ UReward::UReward()
 {
 }
 
-void UReward::Init()
+void UReward::Init(ABaseBallPawn* InPawn)
 {
-
+	Pawn = InPawn;
 }
 
 float UReward::ComputeReward() const

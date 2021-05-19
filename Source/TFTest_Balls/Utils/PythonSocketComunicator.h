@@ -17,7 +17,8 @@ public:
 	enum Mode
 	{
 		Inference = 0,
-		Backward = 1
+		Training = 1,
+		Backward = 2
 	};
 
 	bool IsConnected() const;

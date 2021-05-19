@@ -3,16 +3,15 @@
 
 #include "PawnPositionObservation.h"
 #include "../Core/BaseBallPawn.h"
-#include "Kismet/GameplayStatics.h"
 
-void UPawnPositionObservation::Init()
+void UPawnPositionObservation::Init(ABaseBallPawn* InPawn)
 {
-	BallPawn = Cast<ABaseBallPawn>(UGameplayStatics::GetActorOfClass(this, ABaseBallPawn::StaticClass()));
+	Super::Init(InPawn);
 }
 
 TArray<float> UPawnPositionObservation::ComputeObservation() const
 {
-	const FVector PawnLocation = BallPawn->GetActorLocation();
+	const FVector PawnLocation = Pawn->GetActorLocation();
 	
 	const float X = FMath::GetMappedRangeValueUnclamped(LongitudinalLimits, FVector2D(-1.f, 1.f), PawnLocation.X);
 	const float Y = FMath::GetMappedRangeValueUnclamped(LateralLimits, FVector2D(-1.f, 1.f), PawnLocation.Y);

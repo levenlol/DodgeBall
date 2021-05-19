@@ -32,12 +32,22 @@ def receive_array(conn, size):
 def wait_for_mode(conn):
     print("Waiting for mode.")
     data = str(conn.recv(32), 'utf-8')
+    global mode
+
     if data == "inference":
-        global mode
         mode = 0
-        conn.send('ok'.encode())
+        conn.end('ok'.encode())
+    elif data == "training":
+        mode = 1
+    elif data == "backward":
+        mode = 2
     else:
-        raise NotImplementedError()
+        mode = -1
+        conn.send('ko'.encode())
+        raise RuntimeError()
+
+    conn.send('ok'.encode())
+
 
 def build_NN(conn):
     print("Waiting params to build a NN.")
@@ -65,7 +75,7 @@ def handle_inference_mode(conn, agent : Agent):
     up, right = agent.get_action(obs)
     end = time.time()
 
-    print("Run infernece graph took %f ms", (end - start) * 1000)
+    print("Run inference graph took %f ms", (end - start) * 1000)
     
     #send actions back
 
@@ -74,6 +84,32 @@ def handle_inference_mode(conn, agent : Agent):
 
     conn.send(struct.pack('i', up))
     conn.send(struct.pack('i', right))
+
+def handle_backward_mode(conn, agent : Agent):
+    #get obs
+    print("waiting for observations")
+    obs_num = agent.actor.inputs[0].shape[1]
+    obs = receive_array(conn, obs_num)
+
+    #run inference graph
+    print("Running Inference Graph")
+    start = time.time()
+    up, right = agent.get_action(obs)
+    end = time.time()
+
+    print("Run inference graph took %f ms", (end - start) * 1000)
+
+    #send actions back
+    size = struct.pack("i", 2) # 2 actions
+    conn.send(size)
+
+    conn.send(struct.pack('i', up))
+    conn.send(struct.pack('i', right))
+
+    #get reward.
+    reward = receive_float(conn)
+
+    return obs, [up, right], reward
 
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -91,6 +127,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         with conn:
             print('Connected by', addr)
             agent = build_NN(conn)
+            
+            observations = []
+            actions = []
+            rewards = []
 
             while True:
                 wait_for_mode(conn)
@@ -100,5 +140,18 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 if mode == 0:
                     handle_inference_mode(conn, agent)
                 elif mode == 1:
+                    obs, action, reward = handle_backward_mode(conn, agent)
+                    
+                    observations.append(obs)
+                    actions.append(action)
+                    rewards.append(reward)
+                elif mode == 2:
+                    a_loss, c_loss = agent.learn(observations, actions, rewards)
+
+                    # reset state
+                    observations = []
+                    actions = []
+                    rewards = []
+                else:
                     raise NotImplementedError()
 

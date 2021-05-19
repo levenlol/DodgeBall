@@ -2,14 +2,15 @@
 
 
 #include "Observation.h"
+#include "../Core/BaseBallPawn.h"
 
 UObservation::UObservation()
 {
 }
 
-void UObservation::Init()
+void UObservation::Init(ABaseBallPawn* InPawn)
 {
-
+	Pawn = InPawn;
 }
 
 TArray<float> UObservation::ComputeObservation() const

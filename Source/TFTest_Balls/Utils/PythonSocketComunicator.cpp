@@ -139,31 +139,32 @@ void PythonSocketComunicator::SetMode(PythonSocketComunicator::Mode NewMode)
 {
 	if (IsConnected())
 	{
+		char* NewTypeStr = "";
+
 		if (NewMode == PythonSocketComunicator::Mode::Inference)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Requesting Mode Inference"));
-			char* NewTypeStr = "inference";
-			SendData(NewTypeStr, strlen(NewTypeStr));
-
-			// wait for acknowledge
-			const int32 DataReadNum = ReadData();
-			std::string Response(RecvBuffer.data(), DataReadNum);
-
-			check(Response == "ok");
+			NewTypeStr = "inference";
+		}
+		else if (NewMode == PythonSocketComunicator::Mode::Training)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Requesting Mode Training"));
+			NewTypeStr = "training";
 		}
 		else if (NewMode == PythonSocketComunicator::Mode::Backward)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Requesting Mode Backward"));
 
-			char* NewTypeStr = "Backward";
-			SendData(NewTypeStr, strlen(NewTypeStr));
-
-			// wait for acknowledge
-			const int32 DataReadNum = ReadData();
-			std::string Response(RecvBuffer.data(), DataReadNum);
-
-			check(Response == "ok");
+			NewTypeStr = "backward";
 		}
+
+		SendData(NewTypeStr, strlen(NewTypeStr));
+
+		// wait for acknowledge
+		const int32 DataReadNum = ReadData();
+		std::string Response(RecvBuffer.data(), DataReadNum);
+
+		check(Response == "ok");
 	}
 }
 
@@ -179,7 +180,7 @@ int PythonSocketComunicator::ReadData(int32 BuffSize, char*& OutBuffer)
 
 	if (ReceivedByte > 0)
 	{
-		UE_LOG(LogTemp, Log, TEXT("Bytes Received: %d"), ReceivedByte);
+		UE_LOG(LogTemp, Verbose, TEXT("Bytes Received: %d"), ReceivedByte);
 		OutBuffer = RecvBuffer.data();
 		return ReceivedByte;
 	}

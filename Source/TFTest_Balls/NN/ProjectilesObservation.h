@@ -7,6 +7,7 @@
 #include "ProjectilesObservation.generated.h"
 
 class ABallSpawner;
+class ABaseBallPawn;
 
 /**
  * 
@@ -17,7 +18,7 @@ class TFTEST_BALLS_API UProjectilesObservation : public UObservation
 	GENERATED_BODY()
 public:
 
-	void Init() override;
+	virtual void Init(ABaseBallPawn* InPawn) override;
 
 	TArray<float> ComputeObservation() const override;
 

@@ -6,6 +6,8 @@
 #include "UObject/Object.h"
 #include "Reward.generated.h"
 
+class ABaseBallPawn;
+
 /**
  * 
  */
@@ -17,7 +19,11 @@ class TFTEST_BALLS_API UReward : public UObject
 public:
 	UReward();
 
-	virtual void Init();
+	virtual void Init(ABaseBallPawn* InPawn);
 	virtual float ComputeReward() const;
+
+private:
+	UPROPERTY()
+	ABaseBallPawn* Pawn = nullptr;
 
 };

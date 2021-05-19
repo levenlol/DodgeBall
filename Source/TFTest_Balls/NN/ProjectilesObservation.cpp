@@ -5,9 +5,12 @@
 #include "../Spawner/BallSpawner.h"
 #include "EngineUtils.h"
 #include "../Spawner/BallProjectile.h"
+#include "../Core/BaseBallPawn.h"
 
-void UProjectilesObservation::Init()
+void UProjectilesObservation::Init(ABaseBallPawn* InPawn)
 {
+	Super::Init(InPawn);
+
 	for (TActorIterator<ABallSpawner> It(GetWorld(), ABallSpawner::StaticClass()); It; ++It)
 	{
 		ABallSpawner* Spawner = *It;

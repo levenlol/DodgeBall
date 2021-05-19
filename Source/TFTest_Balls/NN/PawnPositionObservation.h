@@ -20,10 +20,9 @@ public:
 	UPROPERTY(EditAnywhere, Category = Setup)
 	FVector2D LateralLimits;
 
-	virtual void Init() override;
+	virtual void Init(ABaseBallPawn* InPawn) override;
+
 
 	TArray<float> ComputeObservation() const override;
 private:
-	UPROPERTY()
-	ABaseBallPawn* BallPawn = nullptr;
 };

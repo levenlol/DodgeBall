@@ -6,6 +6,10 @@
 #include "EngineUtils.h"
 #include "Agent.h"
 #include "../Utils/PythonSocketComunicator.h"
+#include "../Core/BaseBallPawn.h"
+
+#include "AIController.h"
+#include "GameFramework/PlayerController.h"
 
 // Sets default values for this component's properties
 UTrainingComponent::UTrainingComponent()
@@ -32,8 +36,8 @@ void UTrainingComponent::TickComponent(float DeltaTime, enum ELevelTick TickType
 	}
 
 	// update observation / rewards
-	FState State = AgentToTrain->Step();
-	States.Add(State);
+	FState State = AgentToTrain->Step_Training();
+	States[CurrentExperienceFrame] = State;
 	CurrentExperienceFrame++;
 
 	if (CurrentExperienceFrame == ExperienceLength)
@@ -48,19 +52,57 @@ void UTrainingComponent::TurnOn()
 	UE_LOG(LogTemp, Log, TEXT("TRAINING STARTED."));
 
 	Activate();
+	InitTrainingComponent();
+
 
 	// activate ball spawners
 	InitBallSpawners();
-
 	SpawnAgentToTrain();
+	InitSocketConnection();
+}
 
+void UTrainingComponent::InitTrainingComponent()
+{
+	GEngine->SetMaxFPS(60.f);
+	States.SetNum(ExperienceLength);
+}
+
+void UTrainingComponent::InitSocketConnection()
+{
+	// Make socket
 	Socket = MakeShared<PythonSocketComunicator>();
+	Socket->Connect();
+
+	// Init NN
+	Socket->SendData(AgentToTrain->GetTotalObservationCount());			// input space
+	Socket->SendData(AgentToTrain->ActionsSize);						// action space
+	Socket->SendData(LearningRate);										// learning rate
 }
 
 void UTrainingComponent::SpawnAgentToTrain()
 {
-	AgentToTrain = NewObject<UAgent>(this, *AgentClass);
-	AgentToTrain->Init();
+	for (TActorIterator<ABaseBallPawn> It(GetWorld(), ABaseBallPawn::StaticClass()); It; ++It)
+	{
+		ABaseBallPawn* Pawn = *It;
+
+		PossesPawn(Pawn);
+
+		AgentToTrain = NewObject<UAgent>(this, *AgentClass);
+		AgentToTrain->Init(Pawn);
+
+		break;
+	}
+}
+
+void UTrainingComponent::PossesPawn(ABaseBallPawn* Pawn)
+{
+	APlayerController* CurrentController = Cast<APlayerController>(Pawn->GetController());
+
+	AAIController* Controller = GetWorld()->SpawnActor<AAIController>();
+	Controller->Possess(Pawn);
+
+	CurrentController->bAutoManageActiveCameraTarget = false;
+	CurrentController->SetViewTarget(Pawn);
 }
 
 void UTrainingComponent::InitBallSpawners()

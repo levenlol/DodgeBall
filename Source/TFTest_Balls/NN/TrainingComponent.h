@@ -10,6 +10,7 @@
 class UAgent;
 class PythonSocketComunicator;
 struct FState;
+class ABaseBallPawn;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class TFTEST_BALLS_API UTrainingComponent : public UActorComponent
@@ -33,10 +34,18 @@ protected:
 
 	// Frames
 	UPROPERTY(EditDefaultsOnly, Category = NN)
-	int32 ExperienceLength = 7200;
+	int32 ExperienceLength = 3600;
+
+	UPROPERTY(EditDefaultsOnly, Category = NN)
+	float LearningRate = 0.001f;
 
 private:
 	void SpawnAgentToTrain();
+
+	void InitTrainingComponent();
+	void InitSocketConnection();
+
+	void PossesPawn(ABaseBallPawn* Pawn);
 
 	void InitBallSpawners();
 
